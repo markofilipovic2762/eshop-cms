@@ -30,6 +30,11 @@ export default function DashboardLayout({
     )
   }
 
+  // Don't render the dashboard UI until we confirm the user is authenticated
+  if (!isAuthenticated) {
+    return null
+  }
+
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />

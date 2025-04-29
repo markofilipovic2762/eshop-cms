@@ -28,7 +28,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { Truck, Plus, Search, MoreHorizontal, Edit, Trash2, Loader2, Mail, Phone } from "lucide-react"
 import { getSuppliers, deleteSupplier } from "@/lib/api"
 
-type Supplier = {
+export type Supplier = {
   id: number
   name: string
   phone: string
@@ -52,7 +52,6 @@ export default function SuppliersPage() {
   const fetchSuppliers = async () => {
     setIsLoading(true)
     try {
-      // In a real app, this would be an API call
       const data = await getSuppliers()
 
       // Add mock product counts for demonstration
@@ -76,7 +75,6 @@ export default function SuppliersPage() {
   const handleDeleteSupplier = async (id: number) => {
     setDeletingId(id)
     try {
-      // In a real app, this would be an API call
       await deleteSupplier(id)
 
       setSuppliers(suppliers.filter((supplier) => supplier.id !== id))
@@ -225,7 +223,7 @@ export default function SuppliersPage() {
                               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                               <AlertDialogDescription>
                                 This will delete the supplier "{supplier.name}" and cannot be undone.
-                                {supplier.productCount > 0 &&
+                                {supplier.productCount != undefined && supplier.productCount > 0 &&
                                   ` This supplier is associated with ${supplier.productCount} products that will be affected.`}
                               </AlertDialogDescription>
                             </AlertDialogHeader>

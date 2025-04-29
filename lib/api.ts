@@ -1,8 +1,13 @@
-// This is a mock API client for demonstration purposes
-// In a real application, you would implement actual API calls
+
+import { Category } from "@/app/dashboard/categories/page";
+import { Order } from "@/app/dashboard/orders/page";
+import { Product } from "@/app/dashboard/products/page";
+import { Supplier } from "@/app/dashboard/suppliers/page";
 import { toast } from "@/hooks/use-toast";
 import axios from "axios";
 import { th } from "date-fns/locale";
+
+export const uploadsUrl = "http://localhost:5056/uploads";
 export const api = axios.create({
   baseURL: "http://localhost:5056",
   timeout: 1000,
@@ -10,53 +15,16 @@ export const api = axios.create({
     "Content-Type": "application/json",
   },
 });
-// Authentication
-// export async function login(data: { email: string; password: string }) {
-//   // Simulate API call
-//   try {
-//     await api.post("/login", data);
-//   } catch (error) {
-//     console.error("Login error:", error);
-//     toast({
-//       title: "Login failed",
-//       description: "Please check your credentials and try again.",
-//       variant: "destructive",
-//     });
-//     throw new Error("Login failed");
-//   }
-// }
-
-// export async function register(data: {
-//   name: string;
-//   username: string;
-//   email: string;
-//   password: string;
-// }) {
-//   // Simulate API call
-//   api
-//     .post("/register", data)
-//     .then((response) => {
-//       toast({
-//         title: "Registration successful",
-//         description: "You can now log in with your credentials.",
-//       });
-//     })
-//     .catch((error) => {
-//       console.error("Registration error:", error);
-//       toast({
-//         title: "Registration failed",
-//         description: "Please check your information and try again.",
-//         variant: "destructive",
-//       });
-//       throw new Error("Registration failed");
-//     });
-// }
 
 // Products
-export async function getProducts() {
-  // Simulate API call
-  api
-    .get("/products")
+export async function getProducts(params?: {
+  categoryId?: number | null;
+  subcategoryId?: number | null;
+  supplierId?: number | null;
+  productName?: string;
+}): Promise<Product[]> {
+  return api
+    .get("/products", { params })
     .then((response) => {
       return response.data;
     })
@@ -71,10 +39,97 @@ export async function getProducts() {
     });
 }
 
+export async function getProduct(id: number): Promise<Product> {
+  return api
+    .get(`/products/${id}`)
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error) => {
+      console.error("Product error:", error);
+      toast({
+        title: "Product fetch failed",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+      throw new Error("Product fetch failed");
+    });
+}
+export async function createProduct(data: {
+  name: string;
+  description: string;
+  price: number;
+  amount: number;
+  sold?: number;
+  imageUrl?: string;
+  categoryId: number;
+  subcategoryId: number;
+  supplierId: number | null;
+}) {
+  return api
+    .post("/products", data)
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error) => {
+      console.error("Product creation error:", error);
+      toast({
+        title: "Product creation failed",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+      throw new Error("Product creation failed");
+    });
+}
+export async function updateProduct(
+  id: number,
+  data: {
+    name: string;
+    description: string;
+    price: number;
+    amount: number;
+    sold?: number;
+    imageUrl?: string;
+    categoryId: number;
+    subcategoryId: number;
+    supplierId: number | null;
+  }
+) {
+  return api
+    .put(`/products/${id}`, data)
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error) => {
+      console.error("Product update error:", error);
+      toast({
+        title: "Product update failed",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+      throw new Error("Product update failed");
+    });
+}
+export async function deleteProduct(id: number) {
+  return api
+    .delete(`/products/${id}`)
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error) => {
+      console.error("Product deletion error:", error);
+      toast({
+        title: "Product deletion failed",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+      throw new Error("Product deletion failed");
+    });
+}
+
 // Categories
-export async function getCategories() {
-  // Simulate API call
-  api
+export async function getCategories(): Promise<Category[]> {
+  return api
     .get("/categories")
     .then((response) => {
       return response.data;
@@ -90,9 +145,8 @@ export async function getCategories() {
     });
 }
 
-export async function getCategory(id: number) {
-  // Simulate API call
-  api.get(`/categories/${id}`)
+export async function getCategory(id: number) : Promise<Category> {
+  return api.get(`/categories/${id}`)
     .then((response) => {
       return response.data;
     })
@@ -126,8 +180,7 @@ export async function createCategory(data: { name: string }) {
   );
 }
 
-export async function updateCategory(id: number, data: { name: string }) {
-  
+export async function updateCategory(id: number, data: { name: string }) { 
   api.put(`/categories/${id}`, data)
     .then((response) => {
       return response.data;
@@ -164,7 +217,7 @@ export async function deleteCategory(id: number) {
 // Subcategories
 export async function getSubcategories() {
   
-  api.get("/subcategories")
+  return api.get("/subcategories")
     .then((response) => {
       return response.data;
     }
@@ -183,7 +236,7 @@ export async function getSubcategories() {
 
 export async function getSubcategory(id: number) {
   // Simulate API call
-  api.get(`/subcategories/${id}`)
+  return api.get(`/subcategories/${id}`)
     .then((response) => {
       return response.data;
     })
@@ -260,8 +313,8 @@ export async function deleteSubcategory(id: number) {
 }
 
 // Suppliers
-export async function getSuppliers() {
-  api.get("/suppliers")
+export async function getSuppliers() : Promise<Supplier[]> {
+  return api.get("/suppliers")
     .then((response) => {
       return response.data;
     }
@@ -278,8 +331,8 @@ export async function getSuppliers() {
   );
 }
 
-export async function getSupplier(id: number) {
-  api.get(`/suppliers/${id}`)
+export async function getSupplier(id: number) : Promise<Supplier> {
+  return api.get(`/suppliers/${id}`)
     .then((response) => {
       return response.data;
     }
@@ -303,7 +356,6 @@ export async function createSupplier(data: {
   address: string;
   city: string;
 }) {
-  // Simulate API call
   api.post("/suppliers", data)
     .then((response) => {
       return response.data;
@@ -331,7 +383,6 @@ export async function updateSupplier(
     city: string;
   }
 ) {
-  // Simulate API call
   api.put(`/suppliers/${id}`, data)
     .then((response) => {
       return response.data;
@@ -350,7 +401,6 @@ export async function updateSupplier(
 }
 
 export async function deleteSupplier(id: number) {
-  // Simulate API call
   api.delete(`/suppliers/${id}`)
     .then((response) => {
       return response.data;
@@ -369,8 +419,8 @@ export async function deleteSupplier(id: number) {
 }
 
 // Orders
-export async function getOrders() {
-  api.get("/orders").then((response) => {
+export async function getOrders(): Promise<Order[]> {
+  return api.get("/orders").then((response) => {
     return response.data;
   }
   ).catch((error) => {
@@ -385,8 +435,8 @@ export async function getOrders() {
   );
 }
 
-export async function getOrder(id: number) {
-  api.get(`/orders/${id}`).then((response) => {
+export async function getOrder(id: number) : Promise<Order> {
+  return api.get(`/orders/${id}`).then((response) => {
     return response.data;
   }
   ).catch((error) => {

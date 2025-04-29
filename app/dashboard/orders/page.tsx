@@ -30,7 +30,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { ShoppingCart, Search, MoreHorizontal, Eye, Trash2, Loader2, Calendar } from "lucide-react"
 import { getOrders, deleteOrder } from "@/lib/api"
 
-type Order = {
+export type Order = {
   id: number
   userId: number
   totalPrice: number
@@ -62,10 +62,8 @@ export default function OrdersPage() {
   const fetchOrders = async () => {
     setIsLoading(true)
     try {
-      // In a real app, this would be an API call
       const data = await getOrders()
-
-      // Add mock customer names for demonstration
+      
       const ordersWithCustomers = data.map((order: Order) => ({
         ...order,
         customerName: getRandomCustomerName(),

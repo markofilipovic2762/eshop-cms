@@ -1,11 +1,24 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,137 +26,119 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Package, Plus, Search, MoreHorizontal, Edit, Trash2, Eye } from "lucide-react"
+} from "@/components/ui/dropdown-menu";
+import {
+  Package,
+  Plus,
+  Search,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Eye,
+} from "lucide-react";
+import {
+  deleteProduct,
+  getCategories,
+  getProducts,
+  getSubcategories,
+  getSuppliers,
+  uploadsUrl,
+} from "@/lib/api";
+import { Category } from "../categories/page";
+import { Subcategory } from "../subcategories/page";
+import { Supplier } from "../suppliers/page";
 
-type Product = {
-  id: number
-  name: string
-  description: string
-  price: number
-  amount: number
-  sold: number
-  imageUrl: string
-  categoryId: number
-  categoryName: string
-  subcategoryId: number
-  subcategoryName: string
-  supplierId: number | null
-  supplierName: string | null
-}
+export type Product = {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  amount: number;
+  sold?: number;
+  imageUrl?: string;
+  category: { id: number; name: string };
+  subcategory: { id: number; name: string; categoryId: number };
+  supplier?: { id: number; name: string };
+};
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [searchQuery, setSearchQuery] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState("all")
+  const [products, setProducts] = useState<Product[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubCategories] = useState<Subcategory[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+
+  const [categoryId, setCategoryId] = useState<string>("");
+  const [subcategoryId, setSubcategoryId] = useState<string>("");
+  const [supplierId, setSupplierId] = useState<string>("");
+  const [productName, setProductNme] = useState<string>("");
 
   useEffect(() => {
-    // In a real app, you would fetch this data from your API
-    // For demo purposes, we'll use mock data
-    const mockProducts: Product[] = [
-      {
-        id: 1,
-        name: "Wireless Headphones",
-        description: "Premium wireless headphones with noise cancellation",
-        price: 89.99,
-        amount: 45,
-        sold: 142,
-        imageUrl: "/placeholder.svg?height=80&width=80",
-        categoryId: 1,
-        categoryName: "Electronics",
-        subcategoryId: 1,
-        subcategoryName: "Audio",
-        supplierId: 1,
-        supplierName: "Tech Supplies Inc.",
-      },
-      {
-        id: 2,
-        name: "Smart Watch",
-        description: "Fitness tracker and smartwatch with heart rate monitor",
-        price: 199.99,
-        amount: 28,
-        sold: 98,
-        imageUrl: "/placeholder.svg?height=80&width=80",
-        categoryId: 1,
-        categoryName: "Electronics",
-        subcategoryId: 2,
-        subcategoryName: "Wearables",
-        supplierId: 1,
-        supplierName: "Tech Supplies Inc.",
-      },
-      {
-        id: 3,
-        name: "Running Shoes",
-        description: "Lightweight running shoes with cushioned soles",
-        price: 79.95,
-        amount: 60,
-        sold: 87,
-        imageUrl: "/placeholder.svg?height=80&width=80",
-        categoryId: 2,
-        categoryName: "Footwear",
-        subcategoryId: 3,
-        subcategoryName: "Athletic",
-        supplierId: 2,
-        supplierName: "Sports Gear Ltd.",
-      },
-      {
-        id: 4,
-        name: "Coffee Maker",
-        description: "Programmable coffee maker with thermal carafe",
-        price: 129.99,
-        amount: 32,
-        sold: 65,
-        imageUrl: "/placeholder.svg?height=80&width=80",
-        categoryId: 3,
-        categoryName: "Kitchen",
-        subcategoryId: 4,
-        subcategoryName: "Appliances",
-        supplierId: 3,
-        supplierName: "Home Essentials Co.",
-      },
-      {
-        id: 5,
-        name: "Backpack",
-        description: "Water-resistant backpack with laptop compartment",
-        price: 49.99,
-        amount: 75,
-        sold: 54,
-        imageUrl: "/placeholder.svg?height=80&width=80",
-        categoryId: 4,
-        categoryName: "Accessories",
-        subcategoryId: 5,
-        subcategoryName: "Bags",
-        supplierId: 4,
-        supplierName: "Fashion Distributors",
-      },
-    ]
+    fetchCategories();
+    fetchSubcategories();
+    fetchSuppliers();
+  }, []);
 
-    setProducts(mockProducts)
-  }, [])
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const params: any = {
+        productName,
+      };
+  
+      if (categoryId !== "") {
+        params.categoryId = Number(categoryId);
+      }
+      if (subcategoryId !== "") {
+        params.subcategoryId = Number(subcategoryId);
+      }
+      if (supplierId !== "") {
+        params.supplierId = Number(supplierId);
+      }
+  
+      const data: Product[] = await getProducts(params);
+      setProducts(data);
+    };
+    fetchProducts();
+  }, [categoryId, subcategoryId, supplierId, productName]);
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase())
+  const fetchCategories = async () => {
+    const data = await getCategories();
+    setCategories(data);
+  };
 
-    const matchesCategory = categoryFilter === "all" || product.categoryName === categoryFilter
+  const fetchSubcategories = async () => {
+    const data = await getSubcategories();
+    setSubCategories(data);
+  };
 
-    return matchesSearch && matchesCategory
-  })
+  const fetchSuppliers = async () => {
+    const data = await getSuppliers();
+    setSuppliers(data);
+  };
 
-  const categories = Array.from(new Set(products.map((product) => product.categoryName)))
+  // const filteredProducts = products.filter((product) => {
+  //   const matchesSearch =
+  //     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //     product.description.toLowerCase().includes(searchQuery.toLowerCase())
+
+  //   const matchesCategory = categoryFilter === "all" || product.categoryName === categoryFilter
+
+  //   return matchesSearch && matchesCategory
+  // })
 
   const handleDeleteProduct = (id: number) => {
-    // In a real app, you would call your API to delete the product
-    setProducts(products.filter((product) => product.id !== id))
-  }
+    deleteProduct(id);
+    setProducts(products.filter((product) => product.id !== id));
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Products</h1>
-          <p className="text-muted-foreground">Manage your product inventory and details</p>
+          <p className="text-muted-foreground">
+            Manage your product inventory and details
+          </p>
         </div>
         <Button asChild>
           <Link href="/dashboard/products/new">
@@ -165,15 +160,61 @@ export default function ProductsPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <Select
+            value={categoryId || "all"} // Default to "all" if categoryId is an empty string
+            onValueChange={(value) =>
+              setCategoryId(value === "all" ? "" : value)
+            }
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
               {categories.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
+                <SelectItem key={category.id} value={category.id.toString()}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={subcategoryId || "all"} // Default to "all" if subcategoryId is an empty string
+            onValueChange={(value) =>
+              setSubcategoryId(value === "all" ? "" : value)
+            }
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="All Subcategories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Subcategories</SelectItem>
+              {subcategories.map((subcategory) => (
+                <SelectItem
+                  key={subcategory.id}
+                  value={subcategory.id.toString()}
+                >
+                  {subcategory.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={supplierId || "all"} // Default to "all" if supplierId is an empty string
+            onValueChange={(value) =>
+              setSupplierId(value === "all" ? "" : value)
+            }
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="All Suppliers" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Suppliers</SelectItem>
+              {suppliers.map((supplier) => (
+                <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                  {supplier.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -195,44 +236,51 @@ export default function ProductsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredProducts.length === 0 ? (
+            {products.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center">
                   <div className="flex flex-col items-center justify-center">
                     <Package className="h-8 w-8 text-muted-foreground" />
-                    <p className="mt-2 text-lg font-medium">No products found</p>
+                    <p className="mt-2 text-lg font-medium">
+                      No products found
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      Try adjusting your search or filter to find what you're looking for.
+                      Try adjusting your search or filter to find what you're
+                      looking for.
                     </p>
                   </div>
                 </TableCell>
               </TableRow>
             ) : (
-              filteredProducts.map((product) => (
+              products.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <img
-                        src={product.imageUrl || "/placeholder.svg"}
+                        src={`${uploadsUrl}/${product.imageUrl}`}
                         alt={product.name}
-                        className="h-10 w-10 rounded-md object-cover"
+                        className="h-16 w-16 rounded-md object-cover"
                       />
                       <div>
                         <p className="font-medium">{product.name}</p>
-                        <p className="text-xs text-muted-foreground line-clamp-1">{product.description}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">
+                          {product.description}
+                        </p>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span>{product.categoryName}</span>
-                      <span className="text-xs text-muted-foreground">{product.subcategoryName}</span>
+                      <span>{product.category?.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {product.subcategory.name}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>${product.price.toFixed(2)}</TableCell>
                   <TableCell>{product.amount}</TableCell>
                   <TableCell>{product.sold}</TableCell>
-                  <TableCell>{product.supplierName || "—"}</TableCell>
+                  <TableCell>{product.supplier?.name || "—"}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -273,5 +321,5 @@ export default function ProductsPage() {
         </Table>
       </div>
     </div>
-  )
+  );
 }

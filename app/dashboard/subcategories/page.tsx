@@ -29,7 +29,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { Layers, Plus, Search, MoreHorizontal, Edit, Trash2, Loader2 } from "lucide-react"
 import { getSubcategories, getCategories, deleteSubcategory } from "@/lib/api"
 
-type Subcategory = {
+export type Subcategory = {
   id: number
   name: string
   categoryId: number

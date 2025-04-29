@@ -3,8 +3,7 @@
 import type React from "react"
 
 import { createContext, useContext, useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { api } from "@/lib/api"
+import { useRouter, usePathname } from "next/navigation"
 
 type User = {
   id: number
@@ -29,8 +28,8 @@ type AuthContextType = {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: (data: LoginData) => void
-  register: (data: RegisterData) => void
+  login: (data: LoginData) => Promise<void>
+  register: (data: RegisterData) => Promise<void>
   logout: () => void
 }
 
@@ -40,54 +39,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
     // Check if user is logged in
     const storedUser = localStorage.getItem("user")
     if (storedUser) {
       setUser(JSON.parse(storedUser))
+
+      // Also set the cookie for middleware authentication
+      document.cookie = `user=${storedUser}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`
     }
     setIsLoading(false)
   }, [])
 
-  const login = (data: LoginData) => {
-    
-    console.log("Pozivam funkciju login")
-    api.post("/auth/login", data)
-      .then((response) => {
-        console.log("Login response:", response)
-        const userData = response.data
-        console.log("User data:", userData)
-        if(!userData) {
-          throw new Error("User data is null")
-        }
-        setUser(userData)
-        localStorage.setItem("user", JSON.stringify(userData))
-        router.push("/dashboard")
-      })
-      .catch((error) => {
-        console.error("Login error:", error)
-        throw new Error("Login failed")
+  const login = async (data: LoginData) => {
+    // In a real app, you would call your API here
+    // For demo purposes, we'll simulate a successful login
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // Mock user data
+      const userData = {
+        id: 1,
+        name: "Admin User",
+        email: data.email,
+        username: "admin",
       }
-      )
+
+      setUser(userData)
+      const userString = JSON.stringify(userData)
+      localStorage.setItem("user", userString)
+
+      // Set cookie for middleware authentication
+      document.cookie = `user=${userString}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`
+
+      return Promise.resolve()
+    } catch (error) {
+      return Promise.reject(error)
+    }
   }
 
-  const register = (data: RegisterData) => {
-    api.post("/auth/register", data).then((response) => {
-      // const userData = response.data
-      // setUser(userData)
-      // localStorage.setItem("user", JSON.stringify(userData))
-      window.location.reload()
-    }).catch((error) => {
-      console.error("Registration error:", error)
-      throw new Error("Registration failed")
-    });
+  const register = async (data: RegisterData) => {
+    // In a real app, you would call your API here
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      return Promise.resolve()
+    } catch (error) {
+      return Promise.reject(error)
+    }
   }
 
   const logout = () => {
     setUser(null)
     localStorage.removeItem("user")
-    router.push("/login")
+
+    // Clear the authentication cookie
+    document.cookie = "user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+
+    // Only redirect to login if currently on a dashboard page
+    if (pathname?.startsWith("/dashboard")) {
+      router.push("/login")
+    }
   }
 
   return (

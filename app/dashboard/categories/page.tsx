@@ -28,7 +28,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { Tag, Plus, Search, MoreHorizontal, Edit, Trash2, Loader2 } from "lucide-react"
 import { getCategories, deleteCategory } from "@/lib/api"
 
-type Category = {
+export type Category = {
   id: number
   name: string
   createdBy: string | null
@@ -49,7 +49,6 @@ export default function CategoriesPage() {
   const fetchCategories = async () => {
     setIsLoading(true)
     try {
-      // In a real app, this would be an API call
       const data = await getCategories()
 
       // Add mock product counts for demonstration
@@ -195,7 +194,7 @@ export default function CategoriesPage() {
                               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                               <AlertDialogDescription>
                                 This will delete the category "{category.name}" and cannot be undone.
-                                {category.productCount > 0 &&
+                                {category.productCount && category.productCount > 0 &&
                                   ` This category contains ${category.productCount} products that will be affected.`}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
