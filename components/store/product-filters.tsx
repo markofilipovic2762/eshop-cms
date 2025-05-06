@@ -107,7 +107,14 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
           <AccordionTrigger>Price Range</AccordionTrigger>
           <AccordionContent>
             <div className="space-y-4">
-              <Slider defaultValue={[0, 500]} max={500} step={10} value={priceRange} onValueChange={setPriceRange} />
+              <Slider
+                defaultValue={[0, 500]}
+                max={500}
+                step={10}
+                value={priceRange}
+                onValueChange={setPriceRange}
+                className="my-6"
+              />
               <div className="flex items-center justify-between">
                 <span className="text-sm">${priceRange[0]}</span>
                 <span className="text-sm">${priceRange[1]}</span>

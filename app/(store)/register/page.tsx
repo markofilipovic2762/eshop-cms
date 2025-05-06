@@ -28,39 +28,52 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/components/auth-provider";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 
-const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z.string().min(1, { message: "Password is required." }),
-});
+const formSchema = z
+  .object({
+    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+    email: z.string().email({ message: "Please enter a valid email address." }),
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters." }),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { login } = useAuth();
+  const { register } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: "",
       email: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      await login(values.email, values.password);
+      await register(values.name, values.email, values.password);
       toast({
-        title: "Login successful",
-        description: "You have been logged in.",
+        title: "Account created!",
+        description: "You have successfully registered.",
       });
-      router.push("/");
+      router.push("/login");
     } catch (error) {
       toast({
-        title: "Login failed",
-        description: "Please check your credentials and try again.",
+        title: "Registration failed",
+        description:
+          "There was a problem creating your account. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -73,15 +86,28 @@ export default function LoginPage() {
       <Card className="w-full max-w-md border-none shadow-lg" gradient>
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">
-            Sign in to your account
+            Create an account
           </CardTitle>
           <CardDescription>
-            Enter your email and password to sign in
+            Enter your information to create an account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="email"
@@ -134,11 +160,45 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <div className="flex items-center justify-between">
-                <Link href="#" className="text-sm text-primary hover:underline">
-                  Forgot password?
-                </Link>
-              </div>
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          {...field}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-muted-foreground" />
+                          )}
+                          <span className="sr-only">
+                            {showConfirmPassword
+                              ? "Hide password"
+                              : "Show password"}
+                          </span>
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <Button
                 type="submit"
                 className="w-full"
@@ -148,10 +208,10 @@ export default function LoginPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
+                    Creating account...
                   </>
                 ) : (
-                  "Sign in"
+                  "Create account"
                 )}
               </Button>
             </form>
@@ -159,16 +219,16 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-center text-sm">
-            Don't have an account?{" "}
+            Already have an account?{" "}
             <Link
-              href="/register"
+              href="/login"
               className="font-medium text-primary hover:underline"
             >
-              Create an account
+              Sign in
             </Link>
           </div>
           <p className="text-center text-xs text-muted-foreground">
-            By signing in, you agree to our{" "}
+            By creating an account, you agree to our{" "}
             <Link href="#" className="underline hover:text-primary">
               Terms of Service
             </Link>{" "}

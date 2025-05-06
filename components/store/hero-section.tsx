@@ -1,36 +1,42 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
   return (
-    <div className="relative overflow-hidden bg-muted/40">
-      <div className="container mx-auto px-4 py-16 sm:py-24">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          <div className="flex flex-col justify-center">
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-              Summer Sale <span className="text-primary">2023</span>
+    <div className="relative overflow-hidden">
+      <div className="animated-gradient-bg absolute inset-0 opacity-20"></div>
+      <div className="container relative mx-auto px-4 py-16 md:py-24">
+        <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2">
+          <div className="flex flex-col space-y-6">
+            <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
+              Discover Amazing Products for Your Lifestyle
             </h1>
-            <p className="mt-4 max-w-md text-xl text-muted-foreground">
-              Discover amazing deals on our latest products. Up to 50% off on selected items.
+            <p className="text-xl text-muted-foreground">
+              Shop the latest trends with confidence. Quality products,
+              competitive prices, and exceptional service.
             </p>
-            <div className="mt-8 flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
-              <Button size="lg" asChild>
+            <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
+              <Button variant="gradient" size="lg" asChild>
                 <Link href="/products">Shop Now</Link>
               </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/products?category=1">New Arrivals</Link>
+              <Button variant="outline" size="lg" asChild>
+                <Link href="/categories">Browse Categories</Link>
               </Button>
             </div>
           </div>
-          <div className="flex items-center justify-center">
-            <img
-              src="/placeholder.svg?height=400&width=500"
-              alt="Summer Sale"
-              className="h-auto max-w-full rounded-lg object-cover"
-            />
+          <div className="relative">
+            <div className="aspect-[4/3] overflow-hidden rounded-lg bg-muted">
+              <img
+                src="/hero-img.jpg"
+                alt="Featured Products"
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="absolute -bottom-4 -left-4 h-24 w-24 rounded-full bg-gradient-primary"></div>
+            <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-gradient-secondary"></div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

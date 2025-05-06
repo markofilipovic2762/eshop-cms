@@ -3,7 +3,6 @@
 import type React from "react";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +34,7 @@ import {
   uploadsUrl,
 } from "@/lib/api";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 type Category = {
   id: number;
@@ -64,7 +64,7 @@ export default function NewProductPage() {
     Subcategory[]
   >([]);
   const [imagePreview, setImagePreview] = useState<string>(
-    `${uploadsUrl}/placeholder.png`
+    `${uploadsUrl}placeholder.png`
   );
 
   const [formData, setFormData] = useState({
@@ -75,7 +75,7 @@ export default function NewProductPage() {
     categoryId: "",
     subcategoryId: "",
     supplierId: "",
-    imageUrl: `${uploadsUrl}/placeholder.png`,
+    imageUrl: `${uploadsUrl}placeholder.png`,
   });
 
   useEffect(() => {
@@ -156,7 +156,7 @@ export default function NewProductPage() {
     } catch (error) {
       console.error("Error uploading image:", error);
     }
-    setImagePreview(`${uploadsUrl}/${image}`);
+    setImagePreview(uploadsUrl + image);
     setFormData({
       ...formData,
       imageUrl: image,
@@ -190,25 +190,22 @@ export default function NewProductPage() {
         amount: Number.parseInt(formData.amount),
         categoryId: Number.parseInt(formData.categoryId),
         subcategoryId: Number.parseInt(formData.subcategoryId),
-        supplierId: formData.supplierId ? Number.parseInt(formData.supplierId) : null
+        supplierId: formData.supplierId
+          ? Number.parseInt(formData.supplierId)
+          : null,
       };
 
       const response = await createProduct(productData);
-
-      if(response.status !== 200) {
-        toast({
-          title: "Error",
-          description: "Failed to create product. Please try again.",
-          variant: "destructive",
-        })
-        throw new Error("Failed to create product");
-      }
+      console.log("Product created:", response.data);
 
       toast({
         title: "Success",
         description: "Product created successfully.",
+        variant: "default",
       });
-      router.push("/dashboard/products");
+      setTimeout(() => {
+        router.push("/dashboard/products");
+      }, 1000);
     } catch (error) {
       toast({
         title: "Error",

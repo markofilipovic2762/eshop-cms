@@ -84,7 +84,7 @@ export default function ProductsPage() {
       const params: any = {
         productName,
       };
-  
+
       if (categoryId !== "") {
         params.categoryId = Number(categoryId);
       }
@@ -94,7 +94,7 @@ export default function ProductsPage() {
       if (supplierId !== "") {
         params.supplierId = Number(supplierId);
       }
-  
+
       const data: Product[] = await getProducts(params);
       setProducts(data);
     };
@@ -130,6 +130,8 @@ export default function ProductsPage() {
     deleteProduct(id);
     setProducts(products.filter((product) => product.id !== id));
   };
+
+  console.log(products);
 
   return (
     <div className="space-y-6">
@@ -257,7 +259,10 @@ export default function ProductsPage() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <img
-                        src={`${uploadsUrl}/${product.imageUrl}`}
+                        src={
+                          uploadsUrl + product.imageUrl ||
+                          uploadsUrl + "placeholder.png"
+                        }
                         alt={product.name}
                         className="h-16 w-16 rounded-md object-cover"
                       />

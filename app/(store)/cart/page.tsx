@@ -1,45 +1,56 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
-import { useCart } from "@/components/store/cart-provider"
-import { ArrowLeft, Minus, Plus, ShoppingCart, Trash2, RefreshCw } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { useCart } from "@/components/store/cart-provider";
+import {
+  ArrowLeft,
+  Minus,
+  Plus,
+  ShoppingCart,
+  Trash2,
+  RefreshCw,
+} from "lucide-react";
+import { uploadsUrl } from "@/lib/api";
 
 export default function CartPage() {
-  const router = useRouter()
-  const { cart, updateQuantity, removeFromCart, clearCart } = useCart()
-  const [promoCode, setPromoCode] = useState("")
+  const router = useRouter();
+  const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
+  const [promoCode, setPromoCode] = useState("");
 
-  const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0)
-  const shipping = subtotal > 0 ? 5.99 : 0
-  const discount = 0 // Would be calculated based on promo code
-  const total = subtotal + shipping - discount
+  const subtotal = cart.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0
+  );
+  const shipping = subtotal > 0 ? 5.99 : 0;
+  const discount = 0; // Would be calculated based on promo code
+  const total = subtotal + shipping - discount;
 
   const handleQuantityChange = (id: number, newQuantity: number) => {
     if (newQuantity > 0) {
-      updateQuantity(id, newQuantity)
+      updateQuantity(id, newQuantity);
     }
-  }
+  };
 
   const handleRemoveItem = (id: number) => {
-    removeFromCart(id)
-  }
+    removeFromCart(id);
+  };
 
   const handleApplyPromoCode = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     // In a real app, you would validate the promo code here
-    alert(`Promo code "${promoCode}" applied!`)
-  }
+    alert(`Promo code "${promoCode}" applied!`);
+  };
 
   const handleCheckout = () => {
-    router.push("/checkout")
-  }
+    router.push("/checkout");
+  };
 
   if (cart.length === 0) {
     return (
@@ -53,7 +64,7 @@ export default function CartPage() {
           <Link href="/products">Start Shopping</Link>
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -86,11 +97,17 @@ export default function CartPage() {
 
               <div className="divide-y">
                 {cart.map((item) => (
-                  <div key={item.id} className="grid grid-cols-1 gap-4 py-4 sm:grid-cols-6 sm:gap-6">
+                  <div
+                    key={item.id}
+                    className="grid grid-cols-1 gap-4 py-4 sm:grid-cols-6 sm:gap-6"
+                  >
                     <div className="flex gap-4 sm:col-span-3">
                       <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border">
                         <img
-                          src={item.image || "/placeholder.svg?height=80&width=80"}
+                          src={
+                            uploadsUrl + item.image ||
+                            uploadsUrl + "placeholder.png"
+                          }
                           alt={item.name}
                           className="h-full w-full object-cover object-center"
                         />
@@ -119,7 +136,9 @@ export default function CartPage() {
                           variant="outline"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                          onClick={() =>
+                            handleQuantityChange(item.id, item.quantity - 1)
+                          }
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
@@ -128,7 +147,9 @@ export default function CartPage() {
                           variant="outline"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                          onClick={() =>
+                            handleQuantityChange(item.id, item.quantity + 1)
+                          }
                         >
                           <Plus className="h-3 w-3" />
                         </Button>
@@ -137,7 +158,9 @@ export default function CartPage() {
 
                     <div className="flex items-center justify-between sm:col-span-1 sm:block sm:text-right">
                       <span className="font-medium sm:hidden">Total:</span>
-                      <span className="font-medium">${(item.price * item.quantity).toFixed(2)}</span>
+                      <span className="font-medium">
+                        ${(item.price * item.quantity).toFixed(2)}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -191,14 +214,22 @@ export default function CartPage() {
 
               <form onSubmit={handleApplyPromoCode} className="mt-6">
                 <div className="flex gap-2">
-                  <Input placeholder="Promo code" value={promoCode} onChange={(e) => setPromoCode(e.target.value)} />
+                  <Input
+                    placeholder="Promo code"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                  />
                   <Button type="submit" variant="outline">
                     Apply
                   </Button>
                 </div>
               </form>
 
-              <Button className="mt-6 w-full" size="lg" onClick={handleCheckout}>
+              <Button
+                className="mt-6 w-full"
+                size="lg"
+                onClick={handleCheckout}
+              >
                 Proceed to Checkout
               </Button>
             </div>
@@ -206,5 +237,5 @@ export default function CartPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

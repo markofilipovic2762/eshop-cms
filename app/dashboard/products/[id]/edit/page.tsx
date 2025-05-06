@@ -92,7 +92,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
           imageUrl: productData.imageUrl || "/placeholder.svg?height=200&width=200",
         })
 
-        setImagePreview(`${uploadsUrl}/${productData.imageUrl}`)
+        setImagePreview(uploadsUrl+productData.imageUrl)
       } catch (error) {
         toast({
           title: "Error",
@@ -149,7 +149,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       } catch (error) {
         console.error("Error uploading image:", error);
       }
-      setImagePreview(`${uploadsUrl}/${image}`);
+      setImagePreview(uploadsUrl+image);
       setFormData({
         ...formData,
         imageUrl: image
