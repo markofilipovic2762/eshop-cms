@@ -90,7 +90,7 @@ export default function WishlistPage() {
             </Link>
           </Button>
         </div>
-      ) : (
+        ) : (
         <>
           <div className="mb-6 flex items-center justify-between">
             <p className="text-muted-foreground">
@@ -107,14 +107,14 @@ export default function WishlistPage() {
                 key={item.id}
                 className="group overflow-hidden transition-all duration-300 hover:shadow-md"
                 gradient
-            >
+              >
                 <Link href={`/products/${item.id}`}>
                   <CardContent className="p-0">
                     <div className="aspect-square bg-muted">
                       <img
                         src={
-                          uploadsUrl + item.image ||
-                          uploadsUrl + "placeholder.png"
+                          item.imageUrls?.[0] ? uploadsUrl + item.imageUrls[0] :
+                          "placeholder.jpg"
                         }
                         alt={item.name}
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -164,7 +164,7 @@ export default function WishlistPage() {
                   </div>
                 </CardFooter>
               </Card>
-            ))}
+              ))}
           </div>
 
           <Separator className="my-8" />

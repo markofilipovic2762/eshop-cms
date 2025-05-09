@@ -1,10 +1,17 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +19,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,84 +30,95 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { useToast } from "@/components/ui/use-toast"
-import { Tag, Plus, Search, MoreHorizontal, Edit, Trash2, Loader2 } from "lucide-react"
-import { getCategories, deleteCategory } from "@/lib/api"
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  Tag,
+  Plus,
+  Search,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Loader2,
+} from "lucide-react";
+import { getCategories, deleteCategory, uploadsUrl } from "@/lib/api";
 
 export type Category = {
-  id: number
-  name: string
-  createdBy: string | null
-  productCount?: number // Additional field to show number of products in each category
-}
+  id: number;
+  name: string;
+  createdBy: string | null;
+  productCount?: number;
+  imageUrl: string; // Additional field to show number of products in each category
+};
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>([])
-  const [searchQuery, setSearchQuery] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
-  const [deletingId, setDeletingId] = useState<number | null>(null)
-  const { toast } = useToast()
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
-    fetchCategories()
-  }, [])
+    fetchCategories();
+  }, []);
 
   const fetchCategories = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const data = await getCategories()
+      const data = await getCategories();
 
       // Add mock product counts for demonstration
       const categoriesWithCounts = data.map((category: Category) => ({
         ...category,
         productCount: Math.floor(Math.random() * 50) + 1, // Random count between 1-50
-      }))
+      }));
 
-      setCategories(categoriesWithCounts)
+      setCategories(categoriesWithCounts);
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to fetch categories. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleDeleteCategory = async (id: number) => {
-    setDeletingId(id)
+    setDeletingId(id);
     try {
       // In a real app, this would be an API call
-      await deleteCategory(id)
+      await deleteCategory(id);
 
-      setCategories(categories.filter((category) => category.id !== id))
+      setCategories(categories.filter((category) => category.id !== id));
       toast({
         title: "Success",
         description: "Category deleted successfully.",
-      })
+      });
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to delete category. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setDeletingId(null)
+      setDeletingId(null);
     }
-  }
+  };
 
   const filteredCategories = categories.filter((category) =>
-    category.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+    category.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Categories</h1>
-          <p className="text-muted-foreground">Manage product categories for your store</p>
+          <p className="text-muted-foreground">
+            Manage product categories for your store
+          </p>
         </div>
         <Button asChild>
           <Link href="/dashboard/categories/new">
@@ -147,7 +165,9 @@ export default function CategoriesPage() {
                 <TableCell colSpan={4} className="h-24 text-center">
                   <div className="flex flex-col items-center justify-center">
                     <Tag className="h-8 w-8 text-muted-foreground" />
-                    <p className="mt-2 text-lg font-medium">No categories found</p>
+                    <p className="mt-2 text-lg font-medium">
+                      No categories found
+                    </p>
                     <p className="text-sm text-muted-foreground">
                       {searchQuery
                         ? "Try adjusting your search to find what you're looking for."
@@ -159,7 +179,22 @@ export default function CategoriesPage() {
             ) : (
               filteredCategories.map((category) => (
                 <TableRow key={category.id}>
-                  <TableCell className="font-medium">{category.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={
+                          category.imageUrl
+                            ? uploadsUrl + category.imageUrl
+                            : "/placeholder.jpg"
+                        }
+                        alt={category.name}
+                        className="h-16 w-16 rounded-md object-cover"
+                      />
+                      <div>
+                        <p className="font-medium">{category.name}</p>
+                      </div>
+                    </div>
+                  </TableCell>
                   <TableCell>{category.productCount}</TableCell>
                   <TableCell>{category.createdBy || "System"}</TableCell>
                   <TableCell className="text-right">
@@ -174,7 +209,9 @@ export default function CategoriesPage() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/categories/${category.id}/edit`}>
+                          <Link
+                            href={`/dashboard/categories/${category.id}/edit`}
+                          >
                             <Edit className="mr-2 h-4 w-4" />
                             <span>Edit</span>
                           </Link>
@@ -193,15 +230,19 @@ export default function CategoriesPage() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This will delete the category "{category.name}" and cannot be undone.
-                                {category.productCount && category.productCount > 0 &&
+                                This will delete the category "{category.name}"
+                                and cannot be undone.
+                                {category.productCount &&
+                                  category.productCount > 0 &&
                                   ` This category contains ${category.productCount} products that will be affected.`}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleDeleteCategory(category.id)}
+                                onClick={() =>
+                                  handleDeleteCategory(category.id)
+                                }
                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                               >
                                 {deletingId === category.id ? (
@@ -226,5 +267,5 @@ export default function CategoriesPage() {
         </Table>
       </div>
     </div>
-  )
+  );
 }

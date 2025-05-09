@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
-import { getCategories } from "@/lib/api"
+import { getCategories, uploadsUrl } from "@/lib/api"
 import { Category } from "@/app/dashboard/categories/page"
 
 export function CategoryGrid() {
@@ -55,7 +55,7 @@ export function CategoryGrid() {
               <CardContent className="p-0">
                 <div className="aspect-square bg-muted">
                   <img
-                    src={`/placeholder.svg?height=200&width=200&text=${encodeURIComponent(category.name)}`}
+                    src={category.imageUrl ? `${uploadsUrl}${category.imageUrl}` : `/placeholder.jpg`}
                     alt={category.name}
                     className="h-full w-full object-cover"
                   />

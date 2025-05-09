@@ -118,10 +118,7 @@ export function ProductGrid({ products, isLoading = false }: ProductGridProps) {
             <CardContent className="p-0">
               <div className="aspect-square bg-muted overflow-hidden">
                 <img
-                  src={
-                    uploadsUrl + product.imageUrl ||
-                    uploadsUrl + "placeholder.png"
-                  }
+                  src={product.imageUrls[0] ? uploadsUrl+product.imageUrls[0] : "placeholder.jpg"}
                   alt={product.name}
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />

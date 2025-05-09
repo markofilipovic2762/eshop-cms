@@ -8,7 +8,7 @@ type WishlistItem = {
   id: number;
   name: string;
   price: number;
-  image?: string;
+  imageUrls: string[];
   description?: string;
   categoryId?: number;
   categoryName?: string;

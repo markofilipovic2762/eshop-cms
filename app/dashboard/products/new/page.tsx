@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
+// import { useToast } from "@/components/ui/use-toast";
 import { Loader2, ArrowLeft, ImagePlus } from "lucide-react";
 import {
   getCategories,
@@ -35,7 +35,7 @@ import {
 } from "@/lib/api";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-
+import toast, { Toaster } from "react-hot-toast";
 type Category = {
   id: number;
   name: string;
@@ -54,7 +54,7 @@ type Supplier = {
 
 export default function NewProductPage() {
   const router = useRouter();
-  const { toast } = useToast();
+  //const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -63,9 +63,8 @@ export default function NewProductPage() {
   const [filteredSubcategories, setFilteredSubcategories] = useState<
     Subcategory[]
   >([]);
-  const [imagePreview, setImagePreview] = useState<string>(
-    `${uploadsUrl}placeholder.png`
-  );
+  const [imagesPreview, setImagesPreview] = useState<string[]>([]);
+  const [images, setImages] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -75,7 +74,7 @@ export default function NewProductPage() {
     categoryId: "",
     subcategoryId: "",
     supplierId: "",
-    imageUrl: `${uploadsUrl}placeholder.png`,
+    imageUrls: [] as string[],
   });
 
   useEffect(() => {
@@ -92,11 +91,7 @@ export default function NewProductPage() {
         setSubcategories(subcategoriesData);
         setSuppliers(suppliersData);
       } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to fetch form data. Please try again.",
-          variant: "destructive",
-        });
+        toast.error("Failed to load data. Please try again.");
       } finally {
         setIsLoading(false);
       }
@@ -104,6 +99,8 @@ export default function NewProductPage() {
 
     fetchData();
   }, [toast]);
+
+  useEffect(() => {}, [images, imagesPreview]);
 
   // Filter subcategories when category changes
   useEffect(() => {
@@ -127,20 +124,19 @@ export default function NewProductPage() {
   }, [formData.categoryId, subcategories, formData.subcategoryId]);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (images.length > 2) {
+      toast.success("You can only upload up to 3 images.");
+      return;
+    }
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      toast({
-        title: "File Size Error",
-        description: "File size exceeds 2MB. Please upload a smaller file.",
-        variant: "destructive",
-      });
+      toast.error("File size exceeds 2MB. Please upload a smaller image.");
       return;
     }
     const formDejta = new FormData();
     formDejta.append("file", file);
-    let image: string = "";
-
+    let imageUrl: string;
     try {
       const response = await axios.post(
         "http://localhost:5056/products/upload",
@@ -151,21 +147,22 @@ export default function NewProductPage() {
           },
         }
       );
-      console.log("Image uploaded:", response.data);
-      image = response.data;
+      imageUrl = response.data;
+      console.log("Image uploaded:", imageUrl);
+      setImages([...images, imageUrl]);
+      setImagesPreview([...imagesPreview, uploadsUrl + imageUrl]);
+      setFormData({
+        ...formData,
+        imageUrls: [...images, imageUrl],
+      });
     } catch (error) {
       console.error("Error uploading image:", error);
+      toast.error("Failed to upload image. Please try again.");
     }
-    setImagePreview(uploadsUrl + image);
-    setFormData({
-      ...formData,
-      imageUrl: image,
-    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     // Validate form
     if (
       !formData.name ||
@@ -173,11 +170,7 @@ export default function NewProductPage() {
       !formData.amount ||
       !formData.categoryId
     ) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
+      toast.error("Please fill in all required fields.");
       return;
     }
 
@@ -193,29 +186,38 @@ export default function NewProductPage() {
         supplierId: formData.supplierId
           ? Number.parseInt(formData.supplierId)
           : null,
+        imagesUrl: images,
       };
 
       const response = await createProduct(productData);
       console.log("Product created:", response.data);
-
-      toast({
-        title: "Success",
-        description: "Product created successfully.",
-        variant: "default",
-      });
+      toast.success("Product created successfully!");
       setTimeout(() => {
         router.push("/dashboard/products");
       }, 1000);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create product. Please try again.",
-        variant: "destructive",
-      });
+      console.error("Error creating product:", error);
+      toast.error("Failed to create product. Please try again.");
     } finally {
       setIsSubmitting(false);
+      setFormData({
+        name: "",
+        description: "",
+        price: "",
+        amount: "",
+        categoryId: "",
+        subcategoryId: "",
+        supplierId: "",
+        imageUrls: [],
+      });
+      setImagesPreview([]);
+      setImages([]);
     }
   };
+
+  console.log("Images preview:", imagesPreview);
+  console.log("images:", images);
+  console.log("Form data:", formData);
 
   return (
     <div className="space-y-6">
@@ -238,17 +240,29 @@ export default function NewProductPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Product Image */}
+            {/* Product Images */}
             <div className="space-y-2">
-              <Label>Product Image</Label>
+              <Label>Product Images</Label>
               <div className="flex flex-col items-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
-                <div className="relative h-40 w-40 overflow-hidden rounded-md border">
+                {imagesPreview.map((image, index) => (
+                  <div
+                    key={index}
+                    className="relative h-40 w-40 overflow-hidden rounded-md border"
+                  >
+                    <img
+                      src={image || "/placeholder.png"}
+                      alt="Product preview"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ))}
+                {/* <div className="relative h-40 w-40 overflow-hidden rounded-md border">
                   <img
-                    src={imagePreview || "/placeholder.svg"}
+                    src={imagesPreview[] || "/placeholder.svg"}
                     alt="Product preview"
                     className="h-full w-full object-cover"
                   />
-                </div>
+                </div> */}
                 <div className="flex flex-col space-y-2">
                   <Label htmlFor="image" className="cursor-pointer">
                     <div className="flex h-10 items-center justify-center rounded-md border border-dashed px-4 py-2 text-sm hover:bg-muted">
@@ -462,6 +476,7 @@ export default function NewProductPage() {
             </Button>
           </CardFooter>
         </form>
+        <Toaster position="top-center" />
       </Card>
     </div>
   );

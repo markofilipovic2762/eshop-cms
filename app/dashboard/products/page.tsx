@@ -59,6 +59,7 @@ export type Product = {
   category: { id: number; name: string };
   subcategory: { id: number; name: string; categoryId: number };
   supplier?: { id: number; name: string };
+  imageUrls: string[];
 };
 
 export default function ProductsPage() {
@@ -260,8 +261,7 @@ export default function ProductsPage() {
                     <div className="flex items-center gap-3">
                       <img
                         src={
-                          uploadsUrl + product.imageUrl ||
-                          uploadsUrl + "placeholder.png"
+                          product.imageUrls[0] ? uploadsUrl+product.imageUrls[0] : "/placeholder.jpg"
                         }
                         alt={product.name}
                         className="h-16 w-16 rounded-md object-cover"

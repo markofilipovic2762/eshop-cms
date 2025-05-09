@@ -11,7 +11,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useCart } from "@/components/store/cart-provider";
 import { useWishlist } from "@/components/store/wishlist-provider";
 import { ProductGrid } from "@/components/store/product-grid";
-import { getProduct } from "@/lib/api";
+import { getProduct, getRelatedProducts, uploadsUrl } from "@/lib/api";
 import {
   Heart,
   Minus,
@@ -19,6 +19,9 @@ import {
   ShoppingCart,
   Check,
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Expand,
 } from "lucide-react";
 
 export default function ProductPage() {
@@ -34,6 +37,10 @@ export default function ProductPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [addedToCart, setAddedToCart] = useState(false);
 
+  // Image carousel state
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -42,13 +49,13 @@ export default function ProductPage() {
         setProduct(productData);
 
         // Fetch related products
-        // if (productData.category.id) {
-        //   const related = await getRelatedProducts(
-        //     productData.categoryId,
-        //     productId
-        //   );
-        //   setRelatedProducts(related as any[]);
-        // }
+        if (productData.category.id) {
+          const related = await getRelatedProducts(
+            productData.category.id,
+            productId
+          );
+          setRelatedProducts(related as any[]);
+        }
       } catch (error) {
         console.error("Error fetching product:", error);
         toast({
@@ -72,7 +79,7 @@ export default function ProductPage() {
       name: product.name,
       price: product.price,
       quantity: quantity,
-      image: product.imageUrl,
+      image: product.imageUrl[0] || "/placeholder.png",
     });
 
     setAddedToCart(true);
@@ -95,7 +102,7 @@ export default function ProductPage() {
       id: product.id,
       name: product.name,
       price: product.price,
-      image: product.imageUrl,
+      imageUrls: product.imageUrls,
       description: product.description,
       categoryId: product.categoryId,
       categoryName: product.categoryName,
@@ -117,6 +124,51 @@ export default function ProductPage() {
 
   const decrementQuantity = () => {
     setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+  };
+
+  // Image carousel navigation
+  const nextImage = () => {
+    if (!product || !product.imageUrls) return;
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === product.imageUrls.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const prevImage = () => {
+    if (!product || !product.imageUrls) return;
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === 0 ? product.imageUrls.length - 1 : prevIndex - 1
+    );
+  };
+
+  const goToImage = (index: number) => {
+    setCurrentImageIndex(index);
+  };
+
+  const toggleZoom = () => {
+    setIsZoomed(!isZoomed);
+  };
+
+  // Get current image URL
+  const getCurrentImageUrl = () => {
+    if (!product) return null;
+
+    if (product.imageUrls && product.imageUrls.length > 0) {
+      return uploadsUrl + product.imageUrls[currentImageIndex];
+    }
+
+    return uploadsUrl + product.imageUrl || "/placeholder.jpg";
+  };
+
+  // Get all image URLs
+  const getImageUrls = () => {
+    if (!product) return [];
+
+    if (product.imageUrls && product.imageUrls.length > 0) {
+      return product.imageUrls;
+    }
+
+    return product.imageUrls ? [product.imageUrls] : ["/placeholder.jpg"];
   };
 
   if (isLoading) {
@@ -154,6 +206,8 @@ export default function ProductPage() {
     );
   }
 
+  const imageUrls = getImageUrls();
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -166,32 +220,109 @@ export default function ProductPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-        {/* Product Image */}
-        <div className="overflow-hidden rounded-lg bg-muted">
-          <img
-            src={product.imageUrl || "/placeholder.svg?height=600&width=600"}
-            alt={product.name}
-            className="h-full w-full object-cover"
-          />
+        {/* Product Image Carousel */}
+        <div className="space-y-4">
+          <div
+            className={`relative overflow-hidden rounded-lg bg-muted transition-all duration-300 ${
+              isZoomed ? "cursor-zoom-out" : "cursor-zoom-in"
+            }`}
+            onClick={toggleZoom}
+          >
+            <div
+              className={`relative aspect-square ${
+                isZoomed ? "scale-150 transition-all duration-300" : ""
+              }`}
+            >
+              <img
+                src={getCurrentImageUrl() || "/placeholder.jpg"}
+                alt={`${product.name} - Image ${currentImageIndex + 1}`}
+                className={`h-full w-full object-contain transition-transform duration-300 ${
+                  isZoomed ? "scale-100" : "scale-90 hover:scale-100"
+                }`}
+              />
+            </div>
+
+            {/* Image navigation controls */}
+            {imageUrls.length > 1 && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-2 opacity-80 hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    prevImage();
+                  }}
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-2 opacity-80 hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    nextImage();
+                  }}
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-2 rounded-full bg-background/80 p-2 opacity-80 hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleZoom();
+                  }}
+                >
+                  <Expand className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+          </div>
+
+          {/* Thumbnails */}
+          {imageUrls.length > 1 && (
+            <div className="flex space-x-2 overflow-x-auto pb-2">
+              {imageUrls.map((url, index) => (
+                <button
+                  key={index}
+                  className={`relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border-2 transition-all ${
+                    currentImageIndex === index
+                      ? "border-primary"
+                      : "border-transparent hover:border-muted-foreground/50"
+                  }`}
+                  onClick={() => goToImage(index)}
+                >
+                  <img
+                    src={uploadsUrl + url || "/placeholder.svg"}
+                    alt={`${product.name} - Thumbnail ${index + 1}`}
+                    className="h-full w-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Product Details */}
         <div className="flex flex-col">
           <div className="mb-2 flex items-center">
             <Link
-              href={`/products?category=${product.categoryId}`}
+              href={`/products?category=${product.category.id}`}
               className="text-sm text-muted-foreground hover:text-primary"
             >
-              {product.categoryName}
+              {product.category.name}
             </Link>
-            {product.subcategoryName && (
+            {product.subcategory.name && (
               <>
                 <span className="mx-2 text-muted-foreground">/</span>
                 <Link
                   href={`/products?subcategory=${product.subcategoryId}`}
                   className="text-sm text-muted-foreground hover:text-primary"
                 >
-                  {product.subcategoryName}
+                  {product.subcategory.name}
                 </Link>
               </>
             )}
@@ -244,7 +375,6 @@ export default function ProductPage() {
             <Button
               className="flex-1 transition-all duration-300"
               size="lg"
-              variant={addedToCart ? "outline" : "gradient"}
               onClick={handleAddToCart}
             >
               {addedToCart ? (
@@ -297,7 +427,7 @@ export default function ProductPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between py-2">
                     <span className="font-medium">Brand</span>
-                    <span>{product.supplierName || "Generic"}</span>
+                    <span>{product.supplier?.name || "Generic"}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between py-2">

@@ -60,10 +60,10 @@ export async function createProduct(data: {
   price: number;
   amount: number;
   sold?: number;
-  imageUrl?: string;
   categoryId: number;
   subcategoryId: number;
   supplierId: number | null;
+  imageUrls?: string[];
 }) {
   try {
     const response = await api.post("/products", data);
