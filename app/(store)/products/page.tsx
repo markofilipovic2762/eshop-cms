@@ -23,6 +23,8 @@ export default function ProductsPage() {
   const searchParam = searchParams.get("search")
   const sortParam = searchParams.get("sort") || "featured"
 
+  console.log(categories)
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true)

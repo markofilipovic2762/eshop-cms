@@ -42,13 +42,15 @@ import {
   Loader2,
 } from "lucide-react";
 import { getCategories, deleteCategory, uploadsUrl } from "@/lib/api";
+import { Subcategory } from "../subcategories/page";
 
 export type Category = {
   id: number;
   name: string;
   createdBy: string | null;
   productCount?: number;
-  imageUrl: string; // Additional field to show number of products in each category
+  imageUrl: string;
+  subcategories: Subcategory[]; // Additional field to show number of products in each category
 };
 
 export default function CategoriesPage() {

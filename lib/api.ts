@@ -250,6 +250,7 @@ export async function getSubcategory(id: number) {
 export async function createSubcategory(data: {
   name: string;
   categoryId: number;
+  imageUrl: string;
 }) {
   api
     .post("/subcategories", data)
@@ -269,7 +270,7 @@ export async function createSubcategory(data: {
 
 export async function updateSubcategory(
   id: number,
-  data: { name: string; categoryId: number }
+  data: { name: string; categoryId: number, imageUrl: string }
 ) {
   api
     .put(`/subcategories/${id}`, data)

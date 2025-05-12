@@ -1,105 +1,150 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useToast } from "@/components/ui/use-toast"
-import { Loader2, ArrowLeft } from "lucide-react"
-import { getCategories, getSubcategory, updateSubcategory } from "@/lib/api"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import toast, { Toaster } from "react-hot-toast";
+import { Loader2, ArrowLeft, ImagePlus } from "lucide-react";
+import {
+  getCategories,
+  getSubcategory,
+  updateSubcategory,
+  uploadsUrl,
+} from "@/lib/api";
+import axios from "axios";
 
 type Category = {
-  id: number
-  name: string
-}
+  id: number;
+  name: string;
+};
 
 type SubcategoryFormData = {
-  name: string
-  categoryId: string
-}
+  name: string;
+  categoryId: string;
+  imageUrl: string;
+};
 
-export default function EditSubcategoryPage({ params }: { params: { id: string } }) {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [categories, setCategories] = useState<Category[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+export default function EditSubcategoryPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const router = useRouter();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<SubcategoryFormData>({
     name: "",
     categoryId: "",
-  })
+    imageUrl: "",
+  });
+  const [imagePreview, setImagePreview] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // In a real app, these would be API calls
         const [subcategoryData, categoriesData] = await Promise.all([
           getSubcategory(Number.parseInt(params.id)),
           getCategories(),
-        ])
+        ]);
 
         setFormData({
           name: subcategoryData.name,
           categoryId: subcategoryData.categoryId.toString(),
-        })
-        setCategories(categoriesData)
+          imageUrl: subcategoryData.imageUrl,
+        });
+        setCategories(categoriesData);
       } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to fetch data. Please try again.",
-          variant: "destructive",
-        })
+        toast.error("Failed to fetch data. Please try again.");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [params.id, toast])
+    fetchData();
+  }, [params.id, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!formData.categoryId) {
-      toast({
-        title: "Validation Error",
-        description: "Please select a parent category.",
-        variant: "destructive",
-      })
-      return
+      toast.error("Please select a parent category.");
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       // In a real app, this would be an API call
       await updateSubcategory(Number.parseInt(params.id), {
         name: formData.name,
         categoryId: Number.parseInt(formData.categoryId),
-      })
+        imageUrl: formData.imageUrl,
+      });
 
-      toast({
-        title: "Success",
-        description: "Subcategory updated successfully.",
-      })
-      router.push("/dashboard/subcategories")
+      toast.success("Subcategory updated successfully!");
+      router.push("/dashboard/subcategories");
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update subcategory. Please try again.",
-        variant: "destructive",
-      })
+      toast.error("Failed to update subcategory. Please try again.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("File size exceeds 2MB. Please upload a smaller image.");
+      return;
+    }
+    const formDejta = new FormData();
+    formDejta.append("file", file);
+    let imageUrl: string;
+    try {
+      const response = await axios.post(
+        "http://localhost:5056/products/upload",
+        formDejta,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      imageUrl = response.data;
+      console.log("Image uploaded:", imageUrl);
+      //setImages([...images, imageUrl]);
+      setImagePreview(`${uploadsUrl}${imageUrl}`);
+      setFormData({
+        ...formData,
+        imageUrl,
+      });
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Failed to upload image. Please try again.");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -139,12 +184,45 @@ export default function EditSubcategoryPage({ params }: { params: { id: string }
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
+                <Label>Subcategory Image</Label>
+                <div className="flex flex-col items-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
+                  <div className="relative h-40 w-40 overflow-hidden rounded-md border">
+                    <img
+                      src={imagePreview || "/placeholder.jpg"}
+                      alt="Product preview"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+
+                  <div className="flex flex-col space-y-2">
+                    <Label htmlFor="image" className="cursor-pointer">
+                      <div className="flex h-10 items-center justify-center rounded-md border border-dashed px-4 py-2 text-sm hover:bg-muted">
+                        <ImagePlus className="mr-2 h-4 w-4" />
+                        <span>Upload Image</span>
+                      </div>
+                      <Input
+                        id="image"
+                        type="file"
+                        accept="image/*"
+                        className="sr-only"
+                        onChange={handleImageChange}
+                      />
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Recommended size: 800x800px. Max size: 2MB.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="name">Subcategory Name</Label>
                 <Input
                   id="name"
                   placeholder="e.g., Smartphones, Running Shoes, Fiction Books"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   required
                 />
               </div>
@@ -152,7 +230,9 @@ export default function EditSubcategoryPage({ params }: { params: { id: string }
                 <Label htmlFor="category">Parent Category</Label>
                 <Select
                   value={formData.categoryId}
-                  onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, categoryId: value })
+                  }
                   required
                 >
                   <SelectTrigger id="category">
@@ -165,7 +245,10 @@ export default function EditSubcategoryPage({ params }: { params: { id: string }
                       </div>
                     ) : (
                       categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id.toString()}>
+                        <SelectItem
+                          key={category.id}
+                          value={category.id.toString()}
+                        >
                           {category.name}
                         </SelectItem>
                       ))
@@ -193,5 +276,5 @@ export default function EditSubcategoryPage({ params }: { params: { id: string }
         )}
       </Card>
     </div>
-  )
+  );
 }

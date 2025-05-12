@@ -40,7 +40,6 @@ import {
   deleteProduct,
   getCategories,
   getProducts,
-  getSubcategories,
   getSuppliers,
   uploadsUrl,
 } from "@/lib/api";
@@ -64,19 +63,17 @@ export type Product = {
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubCategories] = useState<Subcategory[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
 
-  const [categoryId, setCategoryId] = useState<string>("");
-  const [subcategoryId, setSubcategoryId] = useState<string>("");
+  const [category, setCategory] = useState<string>("");
+  const [subcategory, setSubcategory] = useState<string>("");
   const [supplierId, setSupplierId] = useState<string>("");
-  const [productName, setProductNme] = useState<string>("");
+  const [productName, setProductName] = useState<string>("");
 
   useEffect(() => {
     fetchCategories();
-    fetchSubcategories();
     fetchSuppliers();
   }, []);
 
@@ -86,11 +83,11 @@ export default function ProductsPage() {
         productName,
       };
 
-      if (categoryId !== "") {
-        params.categoryId = Number(categoryId);
+      if (category !== "") {
+        params.category = Number(category);
       }
-      if (subcategoryId !== "") {
-        params.subcategoryId = Number(subcategoryId);
+      if (subcategory !== "") {
+        params.subcategory = Number(subcategory);
       }
       if (supplierId !== "") {
         params.supplierId = Number(supplierId);
@@ -100,16 +97,20 @@ export default function ProductsPage() {
       setProducts(data);
     };
     fetchProducts();
-  }, [categoryId, subcategoryId, supplierId, productName]);
+  }, [category, subcategory, supplierId, productName]);
+
+  useEffect(() => {
+    const subcategoriesData = categories.find(
+      (cg) => cg.id.toString() === category
+    )?.subcategories;
+    if (subcategoriesData) {
+      setSubCategories(subcategoriesData);
+    }
+  }, [category]);
 
   const fetchCategories = async () => {
     const data = await getCategories();
     setCategories(data);
-  };
-
-  const fetchSubcategories = async () => {
-    const data = await getSubcategories();
-    setSubCategories(data);
   };
 
   const fetchSuppliers = async () => {
@@ -132,7 +133,9 @@ export default function ProductsPage() {
     setProducts(products.filter((product) => product.id !== id));
   };
 
-  console.log(products);
+  console.log("Proizvodi", products);
+  console.log("Kategorije", categories);
+  console.log("Podkategorije", subcategories);
 
   return (
     <div className="space-y-6">
@@ -159,15 +162,13 @@ export default function ProductsPage() {
               type="search"
               placeholder="Search products..."
               className="pl-8"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
             />
           </div>
           <Select
-            value={categoryId || "all"} // Default to "all" if categoryId is an empty string
-            onValueChange={(value) =>
-              setCategoryId(value === "all" ? "" : value)
-            }
+            value={category || "all"} // Default to "all" if categoryId is an empty string
+            onValueChange={(value) => setCategory(value === "all" ? "" : value)}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="All Categories" />
@@ -183,10 +184,11 @@ export default function ProductsPage() {
           </Select>
 
           <Select
-            value={subcategoryId || "all"} // Default to "all" if subcategoryId is an empty string
+            value={subcategory || "all"} // Default to "all" if subcategoryId is an empty string
             onValueChange={(value) =>
-              setSubcategoryId(value === "all" ? "" : value)
+              setSubcategory(value === "all" ? "" : value)
             }
+            disabled={subcategories.length === 0}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="All Subcategories" />
@@ -261,7 +263,9 @@ export default function ProductsPage() {
                     <div className="flex items-center gap-3">
                       <img
                         src={
-                          product.imageUrls[0] ? uploadsUrl+product.imageUrls[0] : "/placeholder.jpg"
+                          product.imageUrls[0]
+                            ? uploadsUrl + product.imageUrls[0]
+                            : "/placeholder.jpg"
                         }
                         alt={product.name}
                         className="h-16 w-16 rounded-md object-cover"
