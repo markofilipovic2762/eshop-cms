@@ -24,9 +24,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/components/auth-provider";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -35,7 +35,6 @@ const formSchema = z.object({
 
 export default function LoginPage() {
   const router = useRouter();
-  const { toast } = useToast();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -52,17 +51,10 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await login(values.email, values.password);
-      toast({
-        title: "Login successful",
-        description: "You have been logged in.",
-      });
+      toast.success("Login successful!");
       router.push("/");
     } catch (error) {
-      toast({
-        title: "Login failed",
-        description: "Please check your credentials and try again.",
-        variant: "destructive",
-      });
+      toast.error("Login failed. Please check your credentials.");
     } finally {
       setIsLoading(false);
     }

@@ -1,14 +1,17 @@
 "use client";
 
+import axios from "axios";
+import { ca } from "date-fns/locale";
 import type React from "react";
 
 import { createContext, useContext, useState, useEffect } from "react";
 
 type User = {
+  token: string;
   id: number;
   name: string;
+  username: string;
   email: string;
-  role: string;
 };
 
 type AuthContextType = {
@@ -39,15 +42,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     try {
       // Mock login - in a real app, this would be an API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const result: any = await axios.post("http://localhost:5056/auth/login", {
+        email,
+        password,
+      });
+
+      console.log("Login result:", result);
 
       // For demo purposes, we'll just check if the email contains "admin"
-      const isAdmin = email.includes("admin");
+      //const isAdmin = email.includes("admin");
       const user = {
-        id: 1,
-        name: isAdmin ? "Admin User" : "Regular User",
-        email,
-        role: isAdmin ? "admin" : "customer",
+        token: result.token,
+        id: result.id,
+        name: result.name,
+        username: result.username,
+        email: result.email,
       };
 
       setUser(user);
@@ -60,11 +69,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Mock registration - in a real app, this would be an API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
+      const response = await axios.post("http://localhost:5056/auth/register", {
+        name,
+        email,
+        password,
+      });
       // Registration successful, but we don't log the user in automatically
-      return Promise.resolve();
+    } catch (error) {
+      console.error("Registration error:", error);
     } finally {
       setIsLoading(false);
     }

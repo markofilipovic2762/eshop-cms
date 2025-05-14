@@ -24,7 +24,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import toast, { Toaster } from "react-hot-toast";
 import { useAuth } from "@/components/auth-provider";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 
@@ -44,7 +44,6 @@ const formSchema = z
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { toast } = useToast();
   const { register } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -64,18 +63,11 @@ export default function RegisterPage() {
     setIsLoading(true);
     try {
       await register(values.name, values.email, values.password);
-      toast({
-        title: "Account created!",
-        description: "You have successfully registered.",
-      });
+      toast.success("Registration successful!");
       router.push("/login");
     } catch (error) {
-      toast({
-        title: "Registration failed",
-        description:
-          "There was a problem creating your account. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Registration failed. Please try again.");
+      console.error("Registration error:", error);
     } finally {
       setIsLoading(false);
     }
