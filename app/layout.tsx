@@ -11,8 +11,7 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
   title: "E-commerce CMS",
-  description: "Modern e-commerce content management system",
-    generator: 'v0.dev'
+  description: "Modern e-commerce content management system"
 }
 
 export default function RootLayout({

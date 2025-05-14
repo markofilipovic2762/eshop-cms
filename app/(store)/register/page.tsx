@@ -64,7 +64,7 @@ export default function RegisterPage() {
     try {
       await register(values.name, values.email, values.password);
       toast.success("Registration successful!");
-      router.push("/login");
+      //router.push("/login");
     } catch (error) {
       toast.error("Registration failed. Please try again.");
       console.error("Registration error:", error);

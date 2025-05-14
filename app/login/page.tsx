@@ -50,10 +50,11 @@ export default function LoginPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      await login(values.email, values.password);
+      const result = await login(values.email, values.password);
       toast.success("Login successful!");
-      router.push("/");
+      //router.back();
     } catch (error) {
+      console.error("Login error:", error);
       toast.error("Login failed. Please check your credentials.");
     } finally {
       setIsLoading(false);
@@ -171,6 +172,7 @@ export default function LoginPage() {
           </p>
         </CardFooter>
       </Card>
+      <Toaster />
     </div>
   );
 }

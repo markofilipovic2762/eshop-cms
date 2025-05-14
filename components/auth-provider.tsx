@@ -27,11 +27,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Check if user is logged in from localStorage
     const storedUser = localStorage.getItem("user");
+    console.log("Stored user:", storedUser);
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -39,30 +40,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    setIsLoading(true);
+    //setIsLoading(true);
     try {
-      // Mock login - in a real app, this would be an API call
       const result: any = await axios.post("http://localhost:5056/auth/login", {
         email,
         password,
       });
 
-      console.log("Login result:", result);
+      console.log("Login result:", result.data);
 
-      // For demo purposes, we'll just check if the email contains "admin"
+      const data = result.data;
+
       //const isAdmin = email.includes("admin");
       const user = {
-        token: result.token,
-        id: result.id,
-        name: result.name,
-        username: result.username,
-        email: result.email,
+        token: data?.token,
+        id: data?.id,
+        name: data?.name,
+        username: data?.username,
+        email: data?.email,
       };
 
       setUser(user);
       localStorage.setItem("user", JSON.stringify(user));
+      //setIsLoading(false);
+    } catch (error) {
+      console.error("Login error:", error);
+      setUser(null);
+      localStorage.removeItem("user");
+      //setIsLoading(false);
+      throw new Error("Login failed");
     } finally {
-      setIsLoading(false);
+      //setIsLoading(false);
     }
   };
 

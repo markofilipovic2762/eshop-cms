@@ -18,7 +18,9 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push("/login")
+      console.log("loading:", isLoading)
+      console.log("isAuthenticated:", isAuthenticated)
+      //router.push("/login")
     }
   }, [isLoading, isAuthenticated, router])
 
@@ -32,8 +34,12 @@ export default function DashboardLayout({
 
   // Don't render the dashboard UI until we confirm the user is authenticated
   if (!isAuthenticated) {
+    console.log("User is not authenticated, redirecting to login...")
     return null
   }
+
+  console.log("DashboardLayout isAuthenticated:", isAuthenticated)
+  console.log("DashboardLayout isLoading:", isLoading)
 
   return (
     <div className="flex h-screen overflow-hidden">
