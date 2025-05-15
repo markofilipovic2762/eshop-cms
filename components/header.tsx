@@ -69,7 +69,7 @@ export function Header() {
               className="relative h-8 w-8 rounded-full"
             >
               <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-secondary text-white">
-                {user?.name.charAt(0)}
+                {user?.name?.charAt(0)}
               </div>
             </Button>
           </DropdownMenuTrigger>
