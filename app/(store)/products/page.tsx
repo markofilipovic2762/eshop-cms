@@ -1,103 +1,120 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
-import { ProductGrid } from "@/components/store/product-grid"
-import { ProductFilters } from "@/components/store/product-filters"
-import { ProductSort } from "@/components/store/product-sort"
-import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
-import { getProducts, getCategories } from "@/lib/api"
-import { FilterIcon } from "lucide-react"
-import { Product } from "@/app/dashboard/products/page"
-import { Category } from "@/app/dashboard/categories/page"
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { ProductGrid } from "@/components/store/product-grid";
+import { ProductFilters } from "@/components/store/product-filters";
+import { ProductSort } from "@/components/store/product-sort";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getProducts, getCategories } from "@/lib/api";
+import { FilterIcon } from "lucide-react";
+import { Product } from "@/app/dashboard/products/page";
+import { Category } from "@/app/dashboard/categories/page";
 
 export default function ProductsPage() {
-  const searchParams = useSearchParams()
-  const [products, setProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [showFilters, setShowFilters] = useState(false)
+  const searchParams = useSearchParams();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
 
-  const categoryParam = searchParams.get("category")
-  const searchParam = searchParams.get("search")
-  const sortParam = searchParams.get("sort") || "featured"
-
-  console.log(categories)
+  const categoryParam = searchParams.get("category");
+  const subcategoryParam = searchParams.get("subcategory");
+  const searchParam = searchParams.get("search");
+  const sortParam = searchParams.get("sort") || "featured";
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        const [productsData, categoriesData] = await Promise.all([getProducts(), getCategories()])
+        const [productsData, categoriesData] = await Promise.all([
+          getProducts(),
+          getCategories(),
+        ]);
 
-        let filteredProducts = [...productsData]
+        let filteredProducts = [...productsData];
 
         // Apply category filter
         if (categoryParam) {
-          filteredProducts = filteredProducts.filter((product) => product.category.id.toString() === categoryParam)
+          filteredProducts = filteredProducts.filter(
+            (product) => product.category.id.toString() === categoryParam
+          );
+        }
+
+        if (subcategoryParam) {
+          filteredProducts = filteredProducts.filter(
+            (product) => product.subcategory.id.toString() === subcategoryParam
+          );
         }
 
         // Apply search filter
         if (searchParam) {
-          const searchLower = searchParam.toLowerCase()
+          const searchLower = searchParam.toLowerCase();
           filteredProducts = filteredProducts.filter(
             (product) =>
               product.name.toLowerCase().includes(searchLower) ||
-              product.description.toLowerCase().includes(searchLower),
-          )
+              product.description.toLowerCase().includes(searchLower)
+          );
         }
 
         // Apply sorting
         if (sortParam) {
           switch (sortParam) {
             case "price-low":
-              filteredProducts.sort((a, b) => a.price - b.price)
-              break
+              filteredProducts.sort((a, b) => a.price - b.price);
+              break;
             case "price-high":
-              filteredProducts.sort((a, b) => b.price - a.price)
-              break
+              filteredProducts.sort((a, b) => b.price - a.price);
+              break;
             case "newest":
               // In a real app, you would sort by date
-              filteredProducts.sort((a, b) => b.id - a.id)
-              break
+              filteredProducts.sort((a, b) => b.id - a.id);
+              break;
             default:
               // 'featured' - no specific sort
-              break
+              break;
           }
         }
 
-        setProducts(filteredProducts)
-        setCategories(categoriesData)
+        setProducts(filteredProducts);
+        setCategories(categoriesData);
       } catch (error) {
-        console.error("Failed to fetch products:", error)
+        console.error("Failed to fetch products:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [categoryParam, searchParam, sortParam])
+    fetchData();
+  }, [categoryParam, subcategoryParam, searchParam, sortParam]);
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">
           {categoryParam
-            ? categories.find((c) => c.id.toString() === categoryParam)?.name || "Products"
+            ? categories.find((c) => c.id.toString() === categoryParam)?.name ||
+              "Products"
             : searchParam
-              ? `Search results for "${searchParam}"`
-              : "All Products"}
+            ? `Search results for "${searchParam}"`
+            : "All Products"}
         </h1>
         <p className="text-muted-foreground mt-2">
-          {isLoading ? "Loading products..." : `${products.length} products found`}
+          {isLoading
+            ? "Loading products..."
+            : `${products.length} products found`}
         </p>
       </div>
 
       <div className="lg:grid lg:grid-cols-4 lg:gap-8">
         {/* Mobile filter toggle */}
         <div className="mb-4 flex items-center justify-between lg:hidden">
-          <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2"
+          >
             <FilterIcon className="h-4 w-4" />
             Filters
           </Button>
@@ -105,7 +122,11 @@ export default function ProductsPage() {
         </div>
 
         {/* Filters - desktop always visible, mobile toggleable */}
-        <div className={`${showFilters ? "block" : "hidden"} lg:block lg:col-span-1`}>
+        <div
+          className={`${
+            showFilters ? "block" : "hidden"
+          } lg:block lg:col-span-1`}
+        >
           <ProductFilters categories={categories} />
         </div>
 
@@ -129,7 +150,9 @@ export default function ProductsPage() {
           ) : products.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
               <h3 className="text-xl font-medium">No products found</h3>
-              <p className="text-muted-foreground mt-2">Try adjusting your filters or search term</p>
+              <p className="text-muted-foreground mt-2">
+                Try adjusting your filters or search term
+              </p>
             </div>
           ) : (
             <ProductGrid products={products} />
@@ -137,5 +160,5 @@ export default function ProductsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

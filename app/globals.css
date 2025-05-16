@@ -43,7 +43,7 @@
   }
 
   .dark {
-    --background: 240 10% 3.9%;
+    --background: 179 49% 3.9%;
     --foreground: 0 0% 98%;
 
     /* Vibrant primary color - Teal/Turquoise (slightly brighter for dark mode) */
@@ -59,7 +59,7 @@
     --gradient-end: 262 83% 65%; /* Purple */
     --gradient-accent: 330 81% 65%; /* Pink */
 
-    --card: 240 10% 3.9%;
+    --card: 190 50% 3.9%;
     --card-foreground: 0 0% 98%;
 
     --popover: 240 10% 3.9%;

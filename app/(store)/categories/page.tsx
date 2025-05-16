@@ -20,21 +20,12 @@ export const metadata = {
 async function CategoriesContent() {
     const categories = await getCategories();
 
-  // Group subcategories by category
-//   const subcategoriesByCategory = subcategories.reduce((acc, subcategory) => {
-//     if (!acc[subcategory.categoryId]) {
-//       acc[subcategory.categoryId] = [];
-//     }
-//     acc[subcategory.categoryId].push(subcategory);
-//     return acc;
-//   }, {} as Record<string, any[]>);
-
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {categories.map((category) => (
         <Card
           key={category.id}
-          className="overflow-hidden transition-all hover:shadow-md"
+          className="overflow-hidden transition-all duration-300 hover:shadow-md dark:hover:bg-gray-900 hover:bg-gray-100 cursor-pointer"
         >
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
@@ -73,7 +64,7 @@ async function CategoriesContent() {
                       <li key={subcategory.id}>
                         <Link
                           href={`/products?subcategory=${subcategory.id}`}
-                          className="inline-block rounded-md px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground"
+                          className="inline-block border-2 border-gray-300 border-dashed rounded-md px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground"
                         >
                           {subcategory.name}
                         </Link>

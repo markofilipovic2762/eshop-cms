@@ -2,8 +2,8 @@
 
 import type React from "react";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, use } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -63,15 +63,12 @@ type ProductFormData = {
   categoryId: string;
   subcategoryId: string;
   supplierId: string;
-  imageUrl: string;
+  imageUrls: string[];
 };
 
-export default function EditProductPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function EditProductPage() {
   const router = useRouter();
+  const params = useParams<{ id: string }>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -80,7 +77,8 @@ export default function EditProductPage({
   const [filteredSubcategories, setFilteredSubcategories] = useState<
     Subcategory[]
   >([]);
-  const [imagePreview, setImagePreview] = useState<string>("placeholder.jpg");
+  const [imagesPreview, setImagesPreview] = useState<string[]>([]);
+  const [images, setImages] = useState<string[]>([]);
 
   const [formData, setFormData] = useState<ProductFormData>({
     name: "",
@@ -90,7 +88,7 @@ export default function EditProductPage({
     categoryId: "",
     subcategoryId: "",
     supplierId: "",
-    imageUrl: "/placeholder.svg?height=200&width=200",
+    imageUrls: [] as string[],
   });
 
   useEffect(() => {
@@ -119,10 +117,10 @@ export default function EditProductPage({
           supplierId: productData.supplier
             ? productData.supplier.id.toString()
             : "",
-          imageUrl: productData.imageUrl || "/placeholder.jpg",
+          imageUrls: productData.imageUrls || "/placeholder.jpg",
         });
 
-        setImagePreview(uploadsUrl + productData.imageUrl);
+        setImagesPreview(productData.imageUrls);
       } catch (error) {
       } finally {
         setIsLoading(false);
@@ -154,6 +152,10 @@ export default function EditProductPage({
   }, [formData.categoryId, subcategories, formData.subcategoryId]);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (images.length > 2) {
+      toast.error("You can only upload up to 2 images.");
+      return;
+    }
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
@@ -176,14 +178,15 @@ export default function EditProductPage({
       );
       console.log("Image uploaded:", response.data);
       image = response.data;
+      setImages([...images, image]);
+      setImagesPreview([...imagesPreview, uploadsUrl + image]);
+      setFormData({
+        ...formData,
+        imageUrls: [...images, image],
+      });
     } catch (error) {
       console.error("Error uploading image:", error);
     }
-    setImagePreview(uploadsUrl + image);
-    setFormData({
-      ...formData,
-      imageUrl: image,
-    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -211,7 +214,7 @@ export default function EditProductPage({
         categoryId: Number.parseInt(formData.categoryId),
         subcategoryId: Number.parseInt(formData.subcategoryId),
         supplierId: Number.parseInt(formData.supplierId),
-        imageUrl: formData.imageUrl,
+        imageUrls: images,
       };
 
       await updateProduct(Number.parseInt(params.id), productData);
@@ -319,15 +322,21 @@ export default function EditProductPage({
           <CardContent className="space-y-6">
             {/* Product Image */}
             <div className="space-y-2">
-              <Label>Product Image</Label>
+              <Label>Product Images</Label>
               <div className="flex flex-col items-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
-                <div className="relative h-40 w-40 overflow-hidden rounded-md border">
-                  <img
-                    src={`${imagePreview ? imagePreview : "placeholder.jpg"}`}
-                    alt="Product preview"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
+                {imagesPreview.map((image, index) => (
+                  <div
+                    key={index}
+                    className="relative h-40 w-40 overflow-hidden rounded-md border"
+                  >
+                    <img
+                      src={uploadsUrl + image || "/placeholder.jpg"}
+                      alt="Product preview"
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute z-50 w-full h-full bg-gray-100"></div>
+                  </div>
+                ))}
                 <div className="flex flex-col space-y-2">
                   <Label htmlFor="image" className="cursor-pointer">
                     <div className="flex h-10 items-center justify-center rounded-md border border-dashed px-4 py-2 text-sm hover:bg-muted">

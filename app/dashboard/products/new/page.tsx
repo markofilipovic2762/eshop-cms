@@ -54,7 +54,6 @@ type Supplier = {
 
 export default function NewProductPage() {
   const router = useRouter();
-  //const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -250,7 +249,7 @@ export default function NewProductPage() {
                     className="relative h-40 w-40 overflow-hidden rounded-md border"
                   >
                     <img
-                      src={image || "/placeholder.png"}
+                      src={image || "/placeholder.jpg"}
                       alt="Product preview"
                       className="h-full w-full object-cover"
                     />
